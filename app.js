@@ -7,8 +7,8 @@ require("dotenv").config();
 
 const db = require("./db");
 
-const indexRouter = require("./routes/index");
-const usersRouter = require("./routes/users");
+const indexRouter = require("./routes/indexRouter");
+const usersRouter = require("./routes/userRouter");
 
 const app = express();
 
