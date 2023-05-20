@@ -53,7 +53,7 @@ function sanitizeRequestBody(req, res, buf) {
   }
 }
 
-app.use("/", indexRouter);
+app.use("/v1/", indexRouter);
 app.use("/v1/users", usersRouter);
 
 app.use(function (req, res, next) {
