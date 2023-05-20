@@ -9,7 +9,6 @@ I created this repository as a boilerplate for Express and MongoDB databases, wh
 
 Upcoming updates:
 
-1. Integration of Google OAuth and possibly Facebook Login
-2. Enhancement of the basic MVC boilerplate
+1. Enhancement of the basic MVC boilerplate
 
 === CREATED BY BAGAS PRASETYA ===
