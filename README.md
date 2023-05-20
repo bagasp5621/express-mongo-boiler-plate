@@ -1,10 +1,15 @@
-# express-mongo-boiler-plate
-I made this repo so that i have boiler plate for express and mongodb database if i have a new project in the future. This repo include:
-1. Login and Signin endpoint with JWT included
+I created this repository as a boilerplate for Express and MongoDB databases, which I can use for future projects. This repository includes the following features:
+
+1. Login and Signin endpoints with JWT authentication
 2. Error handling
 3. Protection layer
-4. Api limitation
-5. View engine (pug)
-6. Plain MVC Boiler plate (currently unfinished)
+4. API limitation
+5. View engine using Pug
 
-<!-- CREATED BY BAGAS PRASETYA -->
+Upcoming updates:
+
+1. Addition of email verification functionality
+2. Integration of Google OAuth and possibly Facebook Login
+3. Enhancement of the basic MVC boilerplate
+
+=== CREATED BY BAGAS PRASETYA ===
