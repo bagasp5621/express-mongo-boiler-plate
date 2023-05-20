@@ -1,10 +1,10 @@
-const createError = require("http-errors");
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
+const sanitizeHtml = require("sanitize-html");
 require("dotenv").config();
 
 const db = require("./db");
@@ -40,30 +40,27 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(limiter);
 
+// sanitize
+app.use(express.json({ verify: sanitizeRequestBody }));
+// Sanitize request body
+function sanitizeRequestBody(req, res, buf) {
+  if (buf && buf.length) {
+    const sanitizedBody = sanitizeHtml(buf.toString(), {
+      allowedTags: sanitizeHtml.defaults.allowedTags,
+      allowedAttributes: {},
+    });
+    req.body = JSON.parse(sanitizedBody);
+  }
+}
+
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
+app.use("/v1/users", usersRouter);
+
+app.use(function (req, res, next) {
+  res.status(404).json({ message: "404 Not Found" });
+});
 
 app.use(errorHandler);
-
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
-
-// error handler
-app.use(function (err, req, res, next) {
-  // send JSON response for errors
-  if (req.app.get("env") === "development") {
-    res.status(err.status || 500).json({
-      message: err.message,
-      error: err,
-    });
-  } else {
-    res.status(err.status || 500).json({
-      message: "404 Not Found",
-    });
-  }
-});
 
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", function () {

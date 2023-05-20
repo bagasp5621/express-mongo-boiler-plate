@@ -1,11 +1,46 @@
 const jwt = require("jsonwebtoken");
 const validator = require("email-validator");
+const randomstring = require("randomstring");
+const nodemailer = require("nodemailer");
+const fs = require("fs");
+const path = require("path");
 
 const User = require("../models/userModel");
+
+var transporter = nodemailer.createTransport({
+  host: "sandbox.smtp.mailtrap.io",
+  port: process.env.NODEMAILER_PORT,
+  auth: {
+    user: process.env.NODEMAILER_USER,
+    pass: process.env.NODEMAILER_PASS,
+  },
+});
+
+// exports.test = (req, res, next) => {
+//   try {
+//     const filePath = path.join(
+//       __dirname,
+//       "..",
+//       "views",
+//       "verification",
+//       "verification.html"
+//     );
+//     const emailContent = fs.readFileSync(filePath, "utf8");
+//     console.log(emailContent);
+//     res.send(emailContent);
+//   } catch (err) {
+//     console.error(err);
+//     res.sendStatus(500);
+//   }
+// };
 
 exports.createUser = async (req, res, next) => {
   try {
     const { name, email, password, confirmPassword } = req.body;
+
+    if ((!name, !email, !password, !confirmPassword)) {
+      throw { statusCode: 400, message: "Please provide all required fields" };
+    }
 
     // duplicate email
     const emailExist = await User.findOne({ email });
@@ -21,13 +56,56 @@ exports.createUser = async (req, res, next) => {
       throw { statusCode: 422, message: "Invalid email address" };
     }
 
+    // password validation
+    if (password.length < 8) {
+      throw {
+        statusCode: 400,
+        message: "Password must be at least 8 characters long",
+      };
+    }
+
     // check password match
     if (password !== confirmPassword) {
       throw { statusCode: 400, message: "Password do not match" };
     }
 
+    // create token for email verification
+    const verificationToken = randomstring.generate(64) + Date.now().toString();
+
+    const verificationLink = `http://localhost:3000/v1/users/verify/${verificationToken}`;
+
+    const filePath = path.join(
+      __dirname,
+      "..",
+      "views",
+      "verification",
+      "verification.html"
+    );
+
+    const template = fs.readFileSync(filePath, "utf8");
+
+    const html = template.replaceAll(
+      "{{ verificationLink }}",
+      verificationLink
+    );
+
+    // Send verification email
+    const mailOptions = {
+      from: "noreply@example.com",
+      to: email,
+      subject: "Account Verification",
+      html: html,
+    };
+
+    await transporter.sendMail(mailOptions);
+
     // create user
-    const user = await User.create({ name, email, password });
+    const user = await User.create({
+      name,
+      email,
+      password,
+      verificationToken,
+    });
 
     // generate token and cookie
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
@@ -39,7 +117,8 @@ exports.createUser = async (req, res, next) => {
     });
 
     res.status(201).json({
-      message: "Account Created",
+      message:
+        "Account Created, Please verify your account by checking your email.",
       user: {
         userId: user._id,
         name: user.name,
@@ -55,6 +134,10 @@ exports.loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    if ((!email, !password)) {
+      throw { statusCode: 400, message: "Please provide all required fields" };
+    }
+
     // email validation
     if (!validator.validate(email)) {
       throw { statusCode: 422, message: "Invalid email address" };
@@ -63,6 +146,10 @@ exports.loginUser = async (req, res, next) => {
     const user = await User.findOne({ email });
     if (!user) {
       throw { statusCode: 401, message: "Incorrect email or password" };
+    }
+
+    if (!user.verified) {
+      throw { statusCode: 401, message: "Email not verified" };
     }
 
     const passwordIsMatch = await user.comparePassword(password);
@@ -106,7 +193,10 @@ exports.updateUser = async (req, res, next) => {
   try {
     const { name, email } = req.body;
     const userId = req.user.userId;
-    console.log(userId);
+
+    if ((!name, !email)) {
+      throw { statusCode: 400, message: "Please provide all required fields" };
+    }
 
     const user = await User.findById(userId);
 
@@ -117,7 +207,7 @@ exports.updateUser = async (req, res, next) => {
     if (name) {
       if (user.name === name) {
         throw {
-          statusCode: 404,
+          statusCode: 400,
           message: "The new name cannot be the same as the old name",
         };
       }
@@ -132,7 +222,7 @@ exports.updateUser = async (req, res, next) => {
 
       if (user.email === email) {
         throw {
-          statusCode: 404,
+          statusCode: 400,
           message: "The new email cannot be the same as the old email",
         };
       }
@@ -157,15 +247,12 @@ exports.updateUser = async (req, res, next) => {
 
 exports.updateUserPassword = async (req, res, next) => {
   try {
-    if (
-      !req.body.oldPassword ||
-      !req.body.newPassword ||
-      !req.body.confirmPassword
-    ) {
-      throw { statusCode: 400, message: "Missing required fields" };
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    if ((!oldPassword, !newPassword, !confirmPassword)) {
+      throw { statusCode: 400, message: "Please provide all required fields" };
     }
 
-    const { oldPassword, newPassword, confirmPassword } = req.body;
     const user = await User.findById(req.user.userId);
 
     if (!user) {
@@ -174,7 +261,15 @@ exports.updateUserPassword = async (req, res, next) => {
 
     const isMatch = await user.comparePassword(oldPassword);
     if (!isMatch) {
-      throw { statusCode: 401, message: "Old password is incorrect" };
+      throw { statusCode: 401, message: "Incorrect password" };
+    }
+
+    // password validation
+    if (newPassword.length < 8) {
+      throw {
+        statusCode: 400,
+        message: "Password must be at least 8 characters long",
+      };
     }
 
     if (newPassword === oldPassword) {

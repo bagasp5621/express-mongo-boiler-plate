@@ -8,7 +8,7 @@ I created this repository as a boilerplate for Express and MongoDB databases, wh
 
 Upcoming updates:
 
-1. Addition of email verification functionality
+1. Addition of email verification functionality (need resend verification token left)
 2. Integration of Google OAuth and possibly Facebook Login
 3. Enhancement of the basic MVC boilerplate
 
