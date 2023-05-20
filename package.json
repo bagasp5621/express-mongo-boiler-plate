@@ -1,5 +1,5 @@
 {
-  "name": "todo",
+  "name": "express-mongo-boiler-plate",
   "version": "0.0.0",
   "private": true,
   "scripts": {
