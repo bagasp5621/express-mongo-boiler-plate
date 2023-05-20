@@ -5,11 +5,11 @@ I created this repository as a boilerplate for Express and MongoDB databases, wh
 3. Protection layer
 4. API limitation
 5. View engine using Pug
+6. Addition of email verification functionality
 
 Upcoming updates:
 
-1. Addition of email verification functionality (need resend verification token left)
-2. Integration of Google OAuth and possibly Facebook Login
-3. Enhancement of the basic MVC boilerplate
+1. Integration of Google OAuth and possibly Facebook Login
+2. Enhancement of the basic MVC boilerplate
 
 === CREATED BY BAGAS PRASETYA ===
