@@ -16,24 +16,6 @@ var transporter = nodemailer.createTransport({
   },
 });
 
-// exports.test = (req, res, next) => {
-//   try {
-//     const filePath = path.join(
-//       __dirname,
-//       "..",
-//       "views",
-//       "verification",
-//       "verification.html"
-//     );
-//     const emailContent = fs.readFileSync(filePath, "utf8");
-//     console.log(emailContent);
-//     res.send(emailContent);
-//   } catch (err) {
-//     console.error(err);
-//     res.sendStatus(500);
-//   }
-// };
-
 exports.createUser = async (req, res, next) => {
   try {
     const { name, email, password, confirmPassword } = req.body;
@@ -194,7 +176,7 @@ exports.updateUser = async (req, res, next) => {
     const { name, email } = req.body;
     const userId = req.user.userId;
 
-    if ((!name, !email)) {
+    if (!name && !email) {
       throw { statusCode: 400, message: "Please provide all required fields" };
     }
 
