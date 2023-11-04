@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-
 const User = require("../models/userModel");
 
 exports.isLogin = (req, res, next) => {
@@ -43,5 +42,40 @@ exports.emailVerification = async (req, res, next) => {
     return res.status(200).json({ message: "Email verification successful" });
   } catch (err) {
     next(err);
+  }
+};
+
+exports.loginStatus = (req, res, next) => {
+  const token = req.cookies.jwt;
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    return res
+      .status(200)
+      .json({ message: "Logged In", userId: req.user.userId });
+  } catch (err) {
+    if (err.name === "JsonWebTokenError") {
+      throw { statusCode: 401, message: "Invalid token" };
+    } else if (err.name === "TokenExpiredError") {
+      throw { statusCode: 401, message: "Token expired" };
+    } else {
+      throw { statusCode: 401, message: "Unauthorized" };
+    }
+  }
+};
+
+exports.validateApiKey = (req, res, next) => {
+  const { apikey } = req.headers;
+
+  if (apikey && apikey === process.env.API_KEY) {
+    // API key is valid, proceed to the next middleware or route handler
+    next();
+  } else {
+    // Invalid or missing API key
+    res.status(401).json({ error: "Invalid API key" });
   }
 };

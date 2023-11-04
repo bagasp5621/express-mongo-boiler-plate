@@ -5,6 +5,7 @@ const logger = require("morgan");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const sanitizeHtml = require("sanitize-html");
+const cors = require("cors");
 require("dotenv").config();
 
 const db = require("./db");
@@ -26,19 +27,24 @@ const limiter = rateLimit({
 
 const app = express();
 
-app.use(helmet());
-
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
+app.use(helmet());
+app.use(limiter);
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(limiter);
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Replace with your actual frontend origin
+    credentials: true,
+  })
+);
 
 // sanitize
 app.use(express.json({ verify: sanitizeRequestBody }));

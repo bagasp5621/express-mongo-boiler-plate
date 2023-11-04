@@ -4,7 +4,9 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 const authController = require("../controllers/authController");
 
-// router.get("/test", userController.test);
+router.use(authController.validateApiKey);
+
+router.get("/login-status", authController.loginStatus);
 
 router.post("/create", userController.createUser);
 
